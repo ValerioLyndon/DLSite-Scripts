@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         DLSite Price History
 // @namespace    V.L
-// @version      0.2.0
+// @version      0.2.1
 // @description  Remembers and displays the prices you have seen for listings.
 // @author       Valerio Lyndon
 // @match        https://www.dlsite.com/*
@@ -13,6 +13,7 @@
 // @license      MIT
 // ==/UserScript==
 
+const version = '0.2.1';
 // change this to "true" to disable modifying any properties. useful when developing.
 const debug = false;
 
@@ -170,11 +171,16 @@ class PriceProcessor {
 		}
 		currentPrice = parseInt(currentPrice.replaceAll(/\D+/g, ''));
 
-		// janky timeout because DLSite removes and replaces some of the children here and I can't be fucked to write a mutation observer for this
-		setTimeout(()=>{
-			const marker = item.querySelector('.work_buy_body:has(.price)');
-			this.insertPrice( workId, currentPrice, marker );
-		}, 300);
+		let insertAgain = ()=>{
+			const marker = item.querySelector('.work_buy_container');
+			this.insertPrice( workId, currentPrice, marker, 'afterbegin' );
+		};
+		insertAgain();
+
+		const observer = new MutationObserver((mutationsList, observer)=>{
+			insertAgain();
+		});
+		observer.observe(item, { childList: true });
 	}
 
 	async processCarousel( ){
@@ -274,13 +280,13 @@ async function updateVersion( ){
 				continue;
 			}
 
-			let data = new HistoricalDate(value);
+			let data = new HistoricalData(value);
 
-			if( !debug ){ GM.setValue(key, newValue.toString()); }
+			if( !debug ){ GM.setValue(key, data.toString()); }
 		}
 	}
 
-	if( !debug ){ GM.setValue('version', '0.2.0'); }
+	if( !debug ){ GM.setValue('version', version); }
 }
 
 // run script
