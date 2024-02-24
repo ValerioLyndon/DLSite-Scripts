@@ -9,7 +9,7 @@
 // @grant        GM.setValue
 // @grant        GM.getValue
 // @grant        GM.addStyle
-// @licence      MIT
+// @license      MIT
 // ==/UserScript==
 
 GM.addStyle(`
